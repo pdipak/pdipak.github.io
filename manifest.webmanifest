@@ -1,0 +1,17 @@
+{
+  "name": "Pizza Dough Calculator",
+  "short_name": "Pizza Dough",
+  "description": "Pizza dough calculator in cups and teaspoons",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4efe4",
+  "theme_color": "#2f5d3a",
+  "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

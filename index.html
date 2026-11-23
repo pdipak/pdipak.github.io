@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pizza Dough">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2f5d3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<title>Pizza Dough Calculator</title>
+<style>
+/* VOICE: friendly kitchen helper, big and easy to read with floury hands
+   IDEA: an Italian kitchen recipe card: basil green, flour cream, tomato red
+   PICTURE: the recipe card, cups and teaspoons large, grams small underneath
+   COLOUR and TYPE: basil green bar, cream card, tomato accent; native iPhone rounded system font
+   LAYOUT: one app column: size, count, thickness, recipe, method, fine-tune */
+:root{color-scheme:light dark;
+--bg:light-dark(#f4efe4,#141a15);--bar:#2f5d3a;--card:light-dark(#fffdf8,#1f2620);--ink:light-dark(#1f2a21,#f2efe6);
+--muted:light-dark(#6b726a,#a7ada4);--line:light-dark(#e7dfcd,#2f3a31);--tom:#d94b33;--tomInk:light-dark(#c13f29,#ff7a62);
+--field:light-dark(#efe8d8,#283029)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 ui-rounded,-apple-system,system-ui,"Segoe UI",sans-serif;overflow-x:clip}
+.top{background:var(--bar);color:#fff;padding:calc(env(safe-area-inset-top) + 16px) max(18px,env(safe-area-inset-right)) 18px max(18px,env(safe-area-inset-left))}
+.top h1{margin:0;font-size:30px;line-height:1.05;font-weight:800;letter-spacing:-.4px;max-width:640px;margin-inline:auto}
+.top p{margin:4px auto 0;color:#d6e6d8;font-size:15px;max-width:640px}
+.wrap{max-width:640px;margin:0 auto;padding:14px 16px calc(env(safe-area-inset-bottom) + 28px)}
+.sec{background:var(--card);border-radius:18px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 0 var(--line)}
+.lbl{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;margin:0 0 8px}
+.lbl span{font-weight:400;color:var(--muted);font-size:14px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;background:var(--field);border-radius:12px;padding:4px}
+.seg button{min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:700 17px/1 inherit;font-family:inherit;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--tom);color:#fff}
+.seg small{display:block;font-weight:400;font-size:12px;margin-top:3px;opacity:.8}
+.gap{height:16px}
+.count{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.count .step{display:flex;align-items:center;gap:6px}
+.count button{width:44px;height:44px;border-radius:50%;border:0;background:var(--field);color:var(--tomInk);font:700 28px/1 inherit;font-family:inherit;cursor:pointer}
+.count output{min-width:48px;text-align:center;font-size:28px;font-weight:800}
+.quick{display:flex;gap:6px;margin-left:auto}
+.quick button{width:auto;padding:0 14px;border-radius:999px;font-size:16px;color:var(--ink)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.toggle b{display:block}.toggle small{color:var(--muted);font-size:13px}
+.sw{position:relative;width:52px;height:32px;flex:none;border-radius:999px;border:0;background:var(--field);cursor:pointer}
+.sw:after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.sw[aria-checked=true]{background:var(--bar)}.sw[aria-checked=true]:after{left:23px}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--tom);outline-offset:2px}
+.recipe{background:var(--card);border-radius:22px;padding:18px 18px 6px;margin-bottom:12px;border:2px solid var(--tom)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:6px}
+.stats div{background:var(--field);border-radius:12px;padding:8px 10px}
+.stats b{display:block;font-size:20px;font-weight:800;white-space:nowrap}
+.stats span{display:block;font-size:12px;line-height:1.25;color:var(--muted)}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line)}
+.item:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.item .nm{flex:1;font-weight:600}
+.item .nm small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.amt{text-align:right;white-space:nowrap}
+.amt b{display:block;font-size:24px;line-height:1.1;font-weight:800;color:var(--tomInk)}
+.amt small{color:var(--muted);font-size:13px}
+.summary{font-size:14px;color:var(--muted);margin:0 2px 12px;text-align:center}
+.actions{display:flex;gap:10px;margin-bottom:14px}
+.btn{flex:1;min-height:50px;border:0;border-radius:14px;background:var(--bar);color:#fff;font:700 17px inherit;font-family:inherit;cursor:pointer}
+.btn.alt{background:var(--field);color:var(--ink)}
+.tip{background:light-dark(#fbe7e1,#3a2420);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:15px}
+details.sec{padding:0}
+details summary{list-style:none;cursor:pointer;padding:16px;font-weight:700;display:flex;justify-content:space-between;min-height:52px}
+details summary::-webkit-details-marker{display:none}
+details summary:after{content:"＋";color:var(--tomInk)}details[open] summary:after{content:"－"}
+details .in{padding:0 16px 10px}
+ol.method{list-style:none;counter-reset:s;margin:0;padding:0}
+ol.method li{position:relative;padding:10px 0 10px 42px;border-top:1px solid var(--line)}
+ol.method li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:10px;width:30px;height:30px;border-radius:50%;background:var(--bar);color:#fff;font-weight:800;font-size:15px;line-height:30px;text-align:center}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);min-height:60px}
+.row label{flex:1;font-weight:600}
+.row .hint{display:block;font-size:13px;color:var(--muted);font-weight:400}
+.ctl{display:flex;align-items:center;background:var(--field);border-radius:12px;width:130px;flex:none}
+.ctl input{width:100%;border:0;background:transparent;color:var(--ink);font:700 17px inherit;font-family:inherit;text-align:right;padding:10px 4px;outline:none}
+.ctl span{padding-right:12px;color:var(--muted);font-size:15px}
+select{width:170px;flex:none;min-height:44px;border:0;border-radius:12px;background:var(--field);color:var(--ink);font:600 16px inherit;font-family:inherit;padding:8px 10px}
+.note{font-size:13px;color:var(--muted);margin:0 4px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%) translateY(140px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:999px;font-weight:700;transition:transform .25s;white-space:nowrap}
+.toast.on{transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){.toast,.sw:after{transition:none}}
+@media(max-width:380px){.ctl{width:110px}select{width:140px}.quick{margin-left:0}}
+@media print{.top,.sec:not(.recipe),.actions,.tip,details,.toast{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<header class="top"><h1>Pizza Dough Calculator</h1><p>Pick the size, count and thickness. Get cups and teaspoons.</p></header>
+<main class="wrap">
+  <section class="sec" aria-label="Your pizzas">
+    <p class="lbl">Pizza size <span id="sizeHint"></span></p>
+    <div class="seg" id="sizes" role="group" aria-label="Pizza size"></div>
+    <div class="gap"></div>
+    <p class="lbl">Number of pizzas</p>
+    <div class="count">
+      <div class="step"><button type="button" data-d="-1" aria-label="Fewer pizzas">−</button><output id="count" aria-live="polite"></output><button type="button" data-d="1" aria-label="More pizzas">+</button></div>
+      <div class="quick" role="group" aria-label="Quick picks"><button type="button" data-n="1">1</button><button type="button" data-n="5">5</button><button type="button" data-n="10">10</button></div>
+    </div>
+    <div class="gap"></div>
+    <p class="lbl">Thickness</p>
+    <div class="seg" id="thick" role="group" aria-label="Thickness"></div>
+    <div class="gap"></div>
+    <div class="toggle"><div><b>Gluten free</b><small>GF flour blend and extra water</small></div><button type="button" class="sw" id="gf" role="switch" aria-checked="false" aria-label="Gluten free"></button></div>
+  </section>
+
+  <section class="recipe" aria-live="polite" aria-label="Recipe">
+    <div class="stats"><div><b id="sBall"></b><span>each dough ball</span></div><div><b id="sTot"></b><span>total dough</span></div><div><b id="sHyd"></b><span>hydration</span></div></div>
+    <div id="out"></div>
+  </section>
+  <p class="summary" id="summary"></p>
+  <div class="actions"><button class="btn" id="share" type="button">Share recipe</button><button class="btn alt" id="print" type="button">Print</button></div>
+  <div class="tip" id="tip"></div>
+
+  <details class="sec" open><summary>How to make it</summary><div class="in"><ol class="method" id="steps"></ol></div></details>
+
+  <details class="sec"><summary>Fine-tune</summary><div class="in">
+    <div class="row"><label for="sched">Rise time</label><select id="sched"><option value="d">Same day, 8 hours</option><option value="o">Fridge overnight, 24 hours</option><option value="c">Cold ferment, 2–4 days</option></select></div>
+    <div class="row"><label for="ytype">Yeast</label><select id="ytype"><option value="idy">Instant / rapid rise</option><option value="ady">Active dry</option></select></div>
+    <div class="row"><label for="stype">Salt type</label><select id="stype"><option value="6">Table / fine sea salt</option><option value="4.8">Morton kosher</option><option value="2.8">Diamond Crystal kosher</option></select></div>
+    <div class="row"><label for="hyd">Water<span class="hint">% of flour weight</span></label><div class="ctl"><input id="hyd" type="number" inputmode="decimal" min="40" max="100" step="1"><span>%</span></div></div>
+    <div class="row"><label for="salt">Salt</label><div class="ctl"><input id="salt" type="number" inputmode="decimal" min="0" max="5" step="0.1"><span>%</span></div></div>
+    <div class="row"><label for="oil">Olive oil</label><div class="ctl"><input id="oil" type="number" inputmode="decimal" min="0" max="10" step="0.5"><span>%</span></div></div>
+    <div class="row"><label for="sugar">Sugar</label><div class="ctl"><input id="sugar" type="number" inputmode="decimal" min="0" max="10" step="0.5"><span>%</span></div></div>
+    <div class="row"><label for="yeast">Yeast<span class="hint">set by rise time</span></label><div class="ctl"><input id="yeast" type="number" inputmode="decimal" min="0" step="0.05"><span>%</span></div></div>
+    <div class="actions" style="margin:10px 0 4px"><button class="btn alt" id="reset" type="button">Reset to defaults</button></div>
+    <p class="note">Cups assume flour spooned into the cup and leveled. Teaspoons are level. Grams are exact if you have a kitchen scale.</p>
+  </div></details>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+{
+const $=id=>document.getElementById(id);
+const SIZES=[10,12,14,16,20];
+const THICK={thin:{n:"Thin",tf:0.06},reg:{n:"Regular",tf:0.075},thick:{n:"Thick",tf:0.095}}; // oz of dough per square inch
+const YEAST={d:0.4,o:0.35,c:0.2}; // instant yeast % of flour
+const RISE={d:"Same day, 8 hours",o:"Fridge overnight",c:"Cold ferment 2–4 days"};
+const DEF={size:16,count:6,thick:"reg",gf:false,sched:"c",ytype:"idy",stype:"6",hyd:62,salt:2.5,oil:2,sugar:1.5};
+const G={flour:125,gfFlour:135,water:236.6,yeast:3.1,oil:4.5,sugar:4.2};
+const fields=["hyd","salt","oil","sugar","yeast"];
+const defYeast=s=>+(YEAST[s.sched]*(s.ytype==="ady"?1.25:1)).toFixed(2);
+let st={...DEF};st.yeast=defYeast(st);
+try{const s=JSON.parse(localStorage.getItem("pizzadough")||"null");if(s)st={...st,...s}}catch(e){}
+const save=()=>{try{localStorage.setItem("pizzadough",JSON.stringify(st))}catch(e){}};
+
+$("sizes").innerHTML=SIZES.map(s=>`<button type="button" data-size="${s}">${s}″</button>`).join("");
+$("thick").innerHTML=Object.entries(THICK).map(([k,v])=>`<button type="button" data-thick="${k}">${v.n}</button>`).join("");
+
+const FR={0:"",0.125:"⅛",0.25:"¼",0.333:"⅓",0.375:"⅜",0.5:"½",0.625:"⅝",0.667:"⅔",0.75:"¾",0.875:"⅞"};
+function nice(x,steps){
+  let w=Math.floor(x),r=x-w,b=0;
+  for(const a of [...steps,1])if(Math.abs(r-a)<Math.abs(r-b))b=a;
+  if(b===1){w++;b=0}
+  const f=FR[b]||"";
+  if(!w&&!f)return null;
+  return(w?w:"")+(w&&f?" ":"")+f;
+}
+const CUP=[0.25,0.333,0.5,0.667,0.75],TSP=[0.125,0.25,0.375,0.5,0.625,0.75,0.875];
+function cups(g,per){const c=g/per,n=nice(c,CUP);if(!n)return tsp(g,per/48);return`${n} cup${c>=1.5?"s":""}`}
+function tsp(g,per){if(g<=0)return"0 tsp";const n=nice(g/per,TSP);return n?`${n} tsp`:"a pinch"}
+const gr=g=>g>=100?Math.round(g).toLocaleString()+" g":g.toFixed(1)+" g";
+
+function ballWeight(){const r=st.size/2;return Math.PI*r*r*THICK[st.thick].tf*28.35}
+function render(){
+  document.querySelectorAll("[data-size]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.size===st.size));
+  document.querySelectorAll("[data-thick]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.thick===st.thick));
+  $("gf").setAttribute("aria-checked",st.gf);
+  $("count").textContent=st.count;
+  fields.forEach(f=>{if(document.activeElement!==$(f))$(f).value=st[f]});
+  $("sched").value=st.sched;$("ytype").value=st.ytype;$("stype").value=st.stype;
+  calc();save();
+}
+function calc(){
+  const hyd=st.gf?Math.max(st.hyd,85):st.hyd;
+  const ball=ballWeight(),total=ball*st.count;
+  const F=total/(1+(hyd+st.salt+st.oil+st.sugar+st.yeast)/100);
+  const water=F*hyd/100,salt=F*st.salt/100,oil=F*st.oil/100,sugar=F*st.sugar/100,yeast=F*st.yeast/100;
+  const cold=st.sched!=="d";
+  const saltName={"6":"table or fine sea salt","4.8":"Morton kosher","2.8":"Diamond Crystal kosher"}[st.stype];
+  const items=[
+    [st.gf?"Gluten-free flour":"Bread flour",st.gf?"a GF blend with xanthan gum":"or all-purpose","#d9b26b",cups(F,st.gf?G.gfFlour:G.flour),F],
+    ["Water",cold?"cold, under 60°F":"lukewarm, about 80°F","#5aa0d8",cups(water,G.water),water],
+    [st.ytype==="ady"?"Active dry yeast":"Instant yeast","","#8a6d3b",tsp(yeast,G.yeast),yeast],
+    ["Olive oil","","#7a9a2e",tsp(oil,G.oil),oil],
+    ["Sugar","","#e0a33a",tsp(sugar,G.sugar),sugar],
+    ["Salt",saltName,"#9aa3a8",tsp(salt,+st.stype),salt]
+  ].filter(i=>i[4]>0);
+  $("sBall").textContent=gr(ball);$("sTot").textContent=gr(total);$("sHyd").textContent=Math.round(hyd)+"%";
+  $("sizeHint").textContent=`${(ball/28.35).toFixed(1)} oz per ball`;
+  $("out").innerHTML=items.map(i=>`<div class="item"><span class="dot" style="background:${i[2]}"></span><div class="nm">${i[0]}${i[1]?`<small>${i[1]}</small>`:""}</div><div class="amt"><b>${i[3]}</b><small>${gr(i[4])}</small></div></div>`).join("");
+  const summary=`${THICK[st.thick].n} dough · ${RISE[st.sched]} · ${st.count} ball${st.count>1?"s":""} · ${st.size}″${st.gf?" · gluten free":""}`;
+  $("summary").textContent=summary;
+  $("tip").innerHTML=st.gf?"<b>Gluten-free tip:</b> GF dough is soft like thick batter and won't stretch. Press it out on parchment with oiled hands, and bake on the parchment.":
+    cold?"<b>Tip:</b> The long cold rise is where the flavor comes from. Take the dough out of the fridge 2–3 hours before baking so it stretches easily.":
+    "<b>Tip:</b> For better flavor, make the dough a day or more ahead and let it rise in the fridge.";
+  const steps=[
+    cold?"Chill the water to below 60°F.":"Warm the water to about 80°F.",
+    st.ytype==="ady"?"Stir the yeast into the water and wait 5–10 minutes until foamy.":"Mix the water and yeast.",
+    `Add the flour${st.oil>0?" and olive oil":""} and mix for 2 minutes.`,
+    `Keep mixing on low, then add the ${st.sugar>0?"sugar and ":""}salt.`,
+    st.gf?"Mix 3–4 more minutes into a thick, smooth batter. GF dough doesn't need kneading.":"Mix 10 more minutes (or knead by hand) until smooth and stretchy.",
+    "Cover with plastic wrap and rest 1–3 hours.",
+    `Divide into ${st.count} equal piece${st.count>1?"s":""} of ${gr(ball)} each.`,
+    "Shape into balls, pinching the seam closed underneath.",
+    "Put each ball in a lightly oiled container and cover.",
+    st.sched==="d"?"Let them rise at room temperature until puffy, about 4 more hours.":st.sched==="o"?"Refrigerate overnight, about 24 hours.":"Refrigerate 2–4 days. Three days is the sweet spot.",
+    "Let the dough come to room temperature before stretching and baking."
+  ];
+  $("steps").innerHTML=steps.map(s=>`<li>${s}</li>`).join("");
+  return{items,summary,ball};
+}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),1800)}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.size){st.size=+t.dataset.size;render()}
+  else if(t.dataset.thick){st.thick=t.dataset.thick;render()}
+  else if(t.dataset.d){st.count=Math.min(99,Math.max(1,st.count+(+t.dataset.d)));render()}
+  else if(t.dataset.n){st.count=+t.dataset.n;render()}
+});
+$("gf").addEventListener("click",()=>{st.gf=!st.gf;render()});
+fields.forEach(f=>$(f).addEventListener("input",()=>{const v=parseFloat($(f).value);if(isNaN(v)||v<0)return;st[f]=v;calc();save()}));
+$("sched").addEventListener("change",e=>{st.sched=e.target.value;st.yeast=defYeast(st);render()});
+$("ytype").addEventListener("change",e=>{st.ytype=e.target.value;st.yeast=defYeast(st);render()});
+$("stype").addEventListener("change",e=>{st.stype=e.target.value;render()});
+$("reset").addEventListener("click",()=>{st={...DEF,size:st.size,count:st.count,thick:st.thick};st.yeast=defYeast(st);render();toast("Defaults restored")});
+$("print").addEventListener("click",()=>{try{window.print()}catch(e){toast("Printing isn't available here")}});
+$("share").addEventListener("click",async()=>{
+  const {items,summary,ball}=calc();
+  const text=`Pizza dough: ${summary}\n${gr(ball)} per ball\n`+items.map(i=>`• ${i[0]}: ${i[3]} (${gr(i[4])})`).join("\n");
+  try{if(navigator.share){await navigator.share({title:"Pizza dough recipe",text});return}}catch(e){if(e.name==="AbortError")return}
+  try{await navigator.clipboard.writeText(text);toast("Recipe copied")}catch(e){toast("Couldn't share here")}
+});
+render();
+if("serviceWorker" in navigator&&location.protocol==="https:"&&!/claude\.ai|claudeusercontent/.test(location.hostname)){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+}
+</script>
+</body>
+</html>
